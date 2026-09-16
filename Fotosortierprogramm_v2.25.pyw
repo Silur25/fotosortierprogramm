@@ -24,7 +24,7 @@ import fotosortierer_kern as kern  # noqa: E402
 
 EINSTELLUNGSDATEI = PROGRAMMORDNER / "einstellungen.json"
 ICON = PROGRAMMORDNER / "fotos_sortieren.ico"
-VERSION = "2.24"
+VERSION = "2.25"
 
 # Schriftgrössen in Punkt – hier anpassen, falls gewünscht
 GROESSE = 13
@@ -37,6 +37,21 @@ SCHRIFT_ABSCHNITT = ("Arial", GROESSE + 4, "bold")     # Abschnittstitel 1–4 (
 SCHRIFT_TITEL = ("Arial", GROESSE + 13, "bold")        # Programmtitel im Kopf
 SCHRIFT_UNTERTITEL = ("Arial", GROESSE - 1)
 SCHRIFT_TABELLE = ("Arial", GROESSE - 3)                # Zuordnungsliste (kompakt, ohne horizontales Scrollen)
+
+# Befehlsknöpfe: einheitlich etwas dunkleres Grau, damit sie sich vom Hintergrund abheben (alle Fenster)
+KNOPF_FARBE = "#C9CED5"
+KNOPF_AKTIV = "#B4BBC4"
+
+
+class Knopf(tk.Button):
+    """Befehlsknopf mit grauem Hintergrund (tk.Button, weil ttk unter Windows keine Farbe annimmt)."""
+
+    def __init__(self, master, **kw):
+        for k, v in (("font", SCHRIFT), ("bg", KNOPF_FARBE), ("activebackground", KNOPF_AKTIV), ("fg", "black"),
+                     ("relief", "raised"), ("bd", 1), ("padx", 12), ("pady", 4), ("cursor", "hand2"),
+                     ("disabledforeground", "#8A9099")):
+            kw.setdefault(k, v)
+        super().__init__(master, **kw)
 KOPF_FARBE = "#1B3F6B"                                 # Kopfbereich (dunkelblau)
 BALKEN_FARBE = "#1F4E79"                               # Abschnittsbalken (Ausführen, Protokoll)
 BALKEN_HELL = "#5B8DC9"                                # Balken der aufklappbaren Abschnitte 1-3
@@ -91,8 +106,8 @@ class KategorienDialog(tk.Toplevel):
 
         kn = ttk.Frame(frm)
         kn.grid(row=4, column=0, columnspan=2, sticky="e", pady=(12, 0))
-        ttk.Button(kn, text="Abbrechen", command=self.destroy).pack(side="right", padx=(6, 0))
-        ttk.Button(kn, text="OK", command=self.ok).pack(side="right")
+        Knopf(kn, text="Abbrechen", command=self.destroy).pack(side="right", padx=(6, 0))
+        Knopf(kn, text="OK", command=self.ok).pack(side="right")
         self.bind("<Escape>", lambda e: self.destroy())
 
         if vorwahl and vorwahl in kategorien:
@@ -263,17 +278,17 @@ class FortschrittFenster(tk.Toplevel):
         self.l_prozent.pack(anchor="w", pady=(12, 0))
         self.l_zeile1 = tk.Label(inhalt, text="Dateien werden gesucht …", font=SCHRIFT, bg="white", anchor="w")
         self.l_zeile1.pack(anchor="w", pady=(4, 0))
-        self.l_zeile2 = tk.Label(inhalt, text="", font=SCHRIFT_KLEIN, bg="white", fg=HINWEIS_FARBE, anchor="w",
+        self.l_zeile2 = tk.Label(inhalt, text="", font=SCHRIFT_ERLAEUTERUNG, bg="white", fg=HINWEIS_FARBE, anchor="w",
                                  justify="left", wraplength=760)
         self.l_zeile2.pack(anchor="w")
 
         kn = tk.Frame(self, bg="white", padx=24, pady=12)
         kn.pack(fill="x")
-        self.b_abbruch = ttk.Button(kn, text="■  Abbrechen", command=self._abbrechen)
+        self.b_abbruch = Knopf(kn, text="■  Abbrechen", command=self._abbrechen)
         self.b_abbruch.pack(side="right")
-        self.b_ziel = ttk.Button(kn, text="Zielordner öffnen", command=self.ziel_cb)
-        self.b_liste = ttk.Button(kn, text="Zuordnungsliste anzeigen", command=lambda: master._liste_zeigen())
-        self.b_schliessen = ttk.Button(kn, text="Schliessen", command=self.destroy)
+        self.b_ziel = Knopf(kn, text="Zielordner öffnen", command=self.ziel_cb)
+        self.b_liste = Knopf(kn, text="Zuordnungsliste anzeigen", command=lambda: master._liste_zeigen())
+        self.b_schliessen = Knopf(kn, text="Schliessen", command=self.destroy)
         self.lift()
         self.focus_force()
 
@@ -358,8 +373,8 @@ class ZuordnungsFenster(tk.Toplevel):
 
         kn = ttk.Frame(self, padding=(12, 8))
         kn.pack(fill="x")
-        ttk.Button(kn, text="◀  Zurück", command=self.destroy).pack(side="left")
-        ttk.Button(kn, text="Excelliste erstellen und öffnen", command=self.excel).pack(side="left", padx=(12, 0))
+        Knopf(kn, text="◀  Zurück", command=self.destroy).pack(side="left")
+        Knopf(kn, text="Excelliste erstellen und öffnen", command=self.excel).pack(side="left", padx=(12, 0))
         self.l_info = ttk.Label(kn, text="Spaltenüberschrift anklicken = sortieren", style="Hinweis.TLabel")
         self.l_info.pack(side="left", padx=(20, 0))
 
@@ -533,11 +548,11 @@ class ThemenFenster(tk.Toplevel):
 
         kn = ttk.Frame(self, padding=(16, 10, 16, 4))
         kn.pack(fill="x")
-        ttk.Button(kn, text="◀  Zurück (übernehmen)", command=self.schliessen).pack(side="left")
-        ttk.Button(kn, text="Ergänzen / Neu ...", command=app._kat_neu).pack(side="left", padx=(16, 0))
-        ttk.Button(kn, text="Bearbeiten ...", command=app._kat_bearbeiten).pack(side="left", padx=(8, 0))
-        ttk.Button(kn, text="Löschen", command=app._kat_loeschen).pack(side="left", padx=(8, 0))
-        ttk.Button(kn, text="Standard laden", command=app._kat_standard).pack(side="left", padx=(8, 0))
+        Knopf(kn, text="◀  Zurück (übernehmen)", command=self.schliessen).pack(side="left")
+        Knopf(kn, text="Ergänzen / Neu ...", command=app._kat_neu).pack(side="left", padx=(16, 0))
+        Knopf(kn, text="Bearbeiten ...", command=app._kat_bearbeiten).pack(side="left", padx=(8, 0))
+        Knopf(kn, text="Löschen", command=app._kat_loeschen).pack(side="left", padx=(8, 0))
+        Knopf(kn, text="Standard laden", command=app._kat_standard).pack(side="left", padx=(8, 0))
         ttk.Label(kn, text="Doppelklick auf eine Zeile = bearbeiten", style="Erlaeuterung.TLabel").pack(side="left", padx=(20, 0))
 
         inhalt = ttk.Frame(self, padding=(16, 4, 16, 12))
@@ -714,7 +729,7 @@ class App(tk.Tk):
         st.configure("TButton", font=SCHRIFT, padding=(8, 4))
         st.configure("TCheckbutton", font=SCHRIFT, padding=(0, 3))
         st.configure("TEntry", font=SCHRIFT)
-        st.configure("Hinweis.TLabel", font=SCHRIFT_KLEIN, foreground=HINWEIS_FARBE)
+        st.configure("Hinweis.TLabel", font=SCHRIFT_ERLAEUTERUNG, foreground=HINWEIS_FARBE)
         st.configure("Erlaeuterung.TLabel", font=SCHRIFT_ERLAEUTERUNG, foreground=HINWEIS_FARBE)
         st.configure("Treeview", font=SCHRIFT, rowheight=int(GROESSE * 2.2))
         st.configure("Treeview.Heading", font=SCHRIFT_FETT)
@@ -870,17 +885,17 @@ class App(tk.Tk):
         self.v_ziel = tk.StringVar(value=self.e["ziel"])
         ttk.Label(f_ordner, text="Fotos (Quelle):").grid(row=0, column=0, sticky="w")
         ttk.Entry(f_ordner, textvariable=self.v_quelle).grid(row=0, column=1, sticky="ew", padx=6)
-        ttk.Button(f_ordner, text="Wählen ...", command=lambda: self._ordner_waehlen(self.v_quelle)).grid(row=0, column=2)
+        Knopf(f_ordner, text="Wählen ...", command=lambda: self._ordner_waehlen(self.v_quelle)).grid(row=0, column=2)
         ttk.Label(f_ordner, text="Ziel (sortiert):").grid(row=1, column=0, sticky="w")
         ttk.Entry(f_ordner, textvariable=self.v_ziel).grid(row=1, column=1, sticky="ew", padx=6)
-        ttk.Button(f_ordner, text="Wählen ...", command=lambda: self._ordner_waehlen(self.v_ziel)).grid(row=1, column=2)
+        Knopf(f_ordner, text="Wählen ...", command=lambda: self._ordner_waehlen(self.v_ziel)).grid(row=1, column=2)
         ttk.Label(f_ordner, text="Unterordner ausschliessen:").grid(row=2, column=0, sticky="w", pady=(6, 0))
         self.v_ausschluss = tk.StringVar(value=self.e.get("ausschluss", ""))
         ttk.Entry(f_ordner, textvariable=self.v_ausschluss).grid(row=2, column=1, sticky="ew", padx=6, pady=(6, 0))
         ttk.Label(f_ordner, text="Doppelbilder-Ordner:").grid(row=3, column=0, sticky="w", pady=(6, 0))
         self.v_doppel_ordner = tk.StringVar(value=self.e.get("doppel_ordner", ""))
         ttk.Entry(f_ordner, textvariable=self.v_doppel_ordner).grid(row=3, column=1, sticky="ew", padx=6, pady=(6, 0))
-        ttk.Button(f_ordner, text="Wählen ...", command=lambda: self._ordner_waehlen(self.v_doppel_ordner)).grid(
+        Knopf(f_ordner, text="Wählen ...", command=lambda: self._ordner_waehlen(self.v_doppel_ordner)).grid(
             row=3, column=2, pady=(6, 0))
         ttk.Label(f_ordner, style="Hinweis.TLabel", wraplength=1300, justify="left",
                   text="Doppelbilder-Ordner: Dorthin werden doppelte oder sehr ähnliche Bilder kopiert (leer = "
@@ -927,7 +942,7 @@ class App(tk.Tk):
         self.v_mehrfach_schwelle = tk.DoubleVar(value=float(self.e.get("mehrfach_schwelle", 0.25)))
         zeile = ttk.Frame(self.f_thema)
         zeile.grid(row=0, column=0, sticky="ew")
-        self.b_themen = ttk.Button(zeile, text="Themen bearbeiten (Vollbild) ...", command=self._themen_fenster)
+        self.b_themen = Knopf(zeile, text="Themen bearbeiten (Vollbild) ...", command=self._themen_fenster)
         self.b_themen.pack(side="left")
         self.l_themen_kurz = ttk.Label(zeile, text="", style="Hinweis.TLabel", wraplength=1100, justify="left")
         self.l_themen_kurz.pack(side="left", padx=(16, 0))
@@ -943,11 +958,11 @@ class App(tk.Tk):
             row=0, column=0, sticky="w")
         ttk.Checkbutton(f_run, text="Originale nach nach_Datum verschieben statt kopieren (Vorsicht)",
                         variable=self.v_move).grid(row=0, column=1, sticky="w", padx=(16, 0))
-        self.b_start = ttk.Button(f_run, text="▶  Start", command=self._start, width=14)
+        self.b_start = Knopf(f_run, text="▶  Start", command=self._start, width=14)
         self.b_start.grid(row=1, column=0, sticky="w", pady=(8, 0))
-        self.b_stop = ttk.Button(f_run, text="■  Abbrechen", command=self._abbrechen, width=14, state="disabled")
+        self.b_stop = Knopf(f_run, text="■  Abbrechen", command=self._abbrechen, width=14, state="disabled")
         self.b_stop.grid(row=1, column=1, sticky="w", pady=(8, 0), padx=(8, 0))
-        ttk.Button(f_run, text="Zielordner öffnen", command=self._ziel_oeffnen).grid(row=1, column=2, sticky="w",
+        Knopf(f_run, text="Zielordner öffnen", command=self._ziel_oeffnen).grid(row=1, column=2, sticky="w",
                                                                                      pady=(8, 0), padx=(8, 0))
         # Fortschrittsanzeige (eigene Zeile, volle Breite)
         st = ttk.Style()
@@ -967,9 +982,9 @@ class App(tk.Tk):
         f_log.rowconfigure(0, weight=1)
         kn_log = ttk.Frame(f_log)
         kn_log.grid(row=1, column=0, sticky="w", pady=(6, 0))
-        self.b_liste = ttk.Button(kn_log, text="Zuordnungsliste anzeigen", command=self._liste_zeigen, state="disabled")
+        self.b_liste = Knopf(kn_log, text="Zuordnungsliste anzeigen", command=self._liste_zeigen, state="disabled")
         self.b_liste.pack(side="left")
-        self.b_excel = ttk.Button(kn_log, text="Excelliste erstellen", command=self._excel_direkt, state="disabled")
+        self.b_excel = Knopf(kn_log, text="Excelliste erstellen", command=self._excel_direkt, state="disabled")
         self.b_excel.pack(side="left", padx=(8, 0))
         ttk.Label(kn_log, text="(nach einem Lauf verfügbar)", style="Hinweis.TLabel").pack(side="left", padx=(10, 0))
         self.v_logtext = tk.BooleanVar(value=False)
