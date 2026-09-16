@@ -1,13 +1,13 @@
 {
- "version": "2.21",
+ "version": "2.23",
  "datum": "2026-09-16",
- "hinweise": "",
- "installationspaket": "https://raw.githubusercontent.com/silur25/fotosortierprogramm/main/FotosSortieren_Installation_v2.21.zip",
+ "hinweise": "Version 2.23",
+ "installationspaket": "https://raw.githubusercontent.com/silur25/fotosortierprogramm/main/FotosSortieren_Installation_v2.23.zip",
  "dateien": [
   {
-   "name": "Fotosortierprogramm_v2.21.pyw",
-   "url": "https://raw.githubusercontent.com/silur25/fotosortierprogramm/main/Fotosortierprogramm_v2.21.pyw",
-   "sha256": "5cdb3ff44506e9d3cf051f463aff55dab226a57b4c3c79ef68ee6fc2a76e52aa"
+   "name": "Fotosortierprogramm_v2.23.pyw",
+   "url": "https://raw.githubusercontent.com/silur25/fotosortierprogramm/main/Fotosortierprogramm_v2.23.pyw",
+   "sha256": "5bd2ba3f5f99e32cf3b069ede24d06c23237dbd0f973e53440b879cc1dec667b"
   },
   {
    "name": "fotosortierer_kern.py",
@@ -27,7 +27,7 @@
   {
    "name": "ANLEITUNG.txt",
    "url": "https://raw.githubusercontent.com/silur25/fotosortierprogramm/main/ANLEITUNG.txt",
-   "sha256": "cc0b665d970286063b36d85709c9f2f78ddd9acba5c3d5bc4ed6267fba93752b"
+   "sha256": "dd35ac511affd517eb8797de2cd7fd998d775b956a0bec75f3bd637423824d8f"
   }
  ]
 }

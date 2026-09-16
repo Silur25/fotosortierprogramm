@@ -1,7 +1,7 @@
-FOTOSORTIERPROGRAMM  –  Version 2.21
+FOTOSORTIERPROGRAMM  –  Version 2.23
 ===================================
 
-Die Versionsnummer steht im Dateinamen (Fotosortierprogramm_v2.21.pyw) und oben im
+Die Versionsnummer steht im Dateinamen (Fotosortierprogramm_v2.23.pyw) und oben im
 Programmfenster.
 
 INSTALLATION AUF EINEM ANDEREN RECHNER: siehe Abschnitt INSTALLATION unten – das ganze
@@ -194,7 +194,7 @@ GRENZEN UND UNKLARHEITEN (bitte beachten)
 DATEIEN IN DIESEM ORDNER
 ------------------------
 Fotos_sortieren_start.pyw      Feste Startdatei (Ziel der Desktop-Verknüpfung) – nie ersetzen
-Fotosortierprogramm_v2.21.pyw   Programm mit Oberfläche (wird von der Startdatei gestartet)
+Fotosortierprogramm_v2.23.pyw   Programm mit Oberfläche (wird von der Startdatei gestartet)
 fotosortierer_kern.py     Sortierlogik
 Programm installieren.bat Installation (Python, Module, Ordner, Desktop-Verknüpfung)
 verknuepfung_anlegen.py   Legt die Desktop-Verknüpfung separat an (Doppelklick), falls sie fehlt

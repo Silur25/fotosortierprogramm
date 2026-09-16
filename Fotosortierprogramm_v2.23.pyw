@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Fotos sortieren – grafische Oberfläche
-Start:  Doppelklick auf die Desktop-Verknüpfung  oder  pythonw Fotosortierprogramm_v2.21.pyw
+Start:  Doppelklick auf die Desktop-Verknüpfung  oder  pythonw Fotosortierprogramm_v2.23.pyw
 Die Versionsnummer steht im Dateinamen und in VERSION.
 """
 
@@ -24,7 +24,7 @@ import fotosortierer_kern as kern  # noqa: E402
 
 EINSTELLUNGSDATEI = PROGRAMMORDNER / "einstellungen.json"
 ICON = PROGRAMMORDNER / "fotos_sortieren.ico"
-VERSION = "2.21"
+VERSION = "2.23"
 
 # Schriftgrössen in Punkt – hier anpassen, falls gewünscht
 GROESSE = 13
@@ -817,6 +817,14 @@ class App(tk.Tk):
         self.b_update.pack(side="left", padx=(24, 0))
         self.l_update = tk.Label(vz, text="", font=SCHRIFT_ERLAEUTERUNG, bg=KOPF_FARBE, fg="#DCE6F2", anchor="w")
         self.l_update.pack(side="left", padx=(12, 0))
+        # Nur in der Entwickler-Installation vorhanden (Script liegt im Programmordner)
+        self.script_veroeffentlichen = PROGRAMMORDNER / "update_veroeffentlichen.py"
+        # Entwickler-Markierung liegt ausserhalb synchronisierter Ordner (wird vom Script angelegt)
+        marker = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "FotosSortieren" / "entwickler.txt"
+        if self.script_veroeffentlichen.exists() and marker.exists():
+            tk.Button(vz, text="Update veröffentlichen (Entwickler)", font=SCHRIFT_ERLAEUTERUNG, bg="#7A4E1F",
+                      fg="white", activebackground="#95622B", activeforeground="white", relief="flat", padx=10,
+                      pady=2, cursor="hand2", command=self._update_veroeffentlichen).pack(side="left", padx=(24, 0))
 
         # Scrollbarer Hauptbereich (bei kleinen Bildschirmen)
         aussen = ttk.Frame(self)
@@ -1227,6 +1235,30 @@ class App(tk.Tk):
         return True
 
     # ------------------------------------------------------------------ Update
+    def _update_veroeffentlichen(self):
+        """Entwickler: Veröffentlichungs-Script in einem eigenen Konsolenfenster starten."""
+        if self.thread and self.thread.is_alive():
+            messagebox.showwarning("Veröffentlichen", "Bitte zuerst den laufenden Sortierlauf beenden.")
+            return
+        self._einstellungen_uebernehmen()
+        if not messagebox.askyesno(
+                "Update veröffentlichen",
+                f"Version {VERSION} aus diesem Programmordner auf GitHub veröffentlichen?\n\n"
+                "Es öffnet sich ein Fenster: Enter für die Vorgaben, dann Änderungshinweise eintippen "
+                "(leere Zeile beendet). Alle Nutzer erhalten danach das Update angeboten."):
+            return
+        exe = sys.executable
+        if sys.platform.startswith("win"):
+            py = Path(exe).with_name("python.exe")        # Konsole sichtbar (nicht pythonw)
+            exe = str(py) if py.exists() else exe
+            try:
+                subprocess.Popen([exe, str(self.script_veroeffentlichen)], cwd=str(PROGRAMMORDNER),
+                                 creationflags=subprocess.CREATE_NEW_CONSOLE)
+            except Exception as ex:
+                messagebox.showerror("Fehler", f"Script konnte nicht gestartet werden:\n{ex}")
+        else:
+            subprocess.Popen([exe, str(self.script_veroeffentlichen)], cwd=str(PROGRAMMORDNER))
+
     def _update_pruefen(self, manuell=False):
         if not manuell:
             letzte = float(self.e.get("update_letzte_pruefung", 0) or 0)
