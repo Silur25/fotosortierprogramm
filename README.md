@@ -1,9 +1,9 @@
 # Fotosortierprogramm
 
-Aktuelle Version: **2.23** (2026-09-16)
+Aktuelle Version: **2.24** (2026-09-16)
 
-Installation: [FotosSortieren_Installation_v2.23.zip](FotosSortieren_Installation_v2.23.zip) herunterladen, entpacken, `Programm installieren.bat` ausführen.
+Installation: [FotosSortieren_Installation_v2.24.zip](FotosSortieren_Installation_v2.24.zip) herunterladen, entpacken, `Programm installieren.bat` ausführen.
 
 Änderungen:
 
-- Version 2.23
+- Version 2.24

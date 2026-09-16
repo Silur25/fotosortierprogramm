@@ -77,6 +77,8 @@ STANDARD_EINSTELLUNGEN = {
     "datum_struktur": "Jahr/Jahr-Monat",      # oder "Jahr/Jahr-Monat-Tag", "Jahr-Monat"
     "verschieben": False, "testlaufe": True,
     "modell": "mehrsprachig", "schwelle": 0.45, "panorama_verhaeltnis": 2.0,
+    "mehrfach": False,                # Bild zusätzlich in weitere Themen kopieren (z. B. Tier UND Hausumbau)
+    "mehrfach_schwelle": 0.25,        # ab dieser Sicherheit zählt ein weiteres Thema mit
     "raster": 2, "kategorien": STANDARD_KATEGORIEN,
     "ausschluss": "._DAV, [Originaldateien], @eaDir, .thumbnails",   # Unterordner, die übersprungen werden
     "doppel_erkennen": True,          # doppelte / sehr ähnliche Bilder aussortieren
@@ -621,6 +623,9 @@ class Sortierlauf:
                     ueb = Uebersetzer(Path(e.get("_programmordner", ziel)) / "uebersetzungen.json", log)
                     log("Englisches KI-Modell gewählt: deutsche Themenbeschreibungen werden automatisch übersetzt.")
                 kl = Klassifikator(e["modell"], e["kategorien"], log, self.ohne_gewichte, ueb)
+                if e.get("mehrfach"):
+                    log(f"Mehrfachzuordnung: Bilder werden zusätzlich in jedes weitere Thema kopiert, "
+                        f"das mindestens {float(e.get('mehrfach_schwelle', 0.25)):.2f} Sicherheit erreicht.")
             except Exception as ex:
                 log(f"FEHLER beim Laden des KI-Modells: {ex}\nThemensortierung wird übersprungen.")
                 kl = None
@@ -664,6 +669,7 @@ class Sortierlauf:
             try:
                 zeile = {"Nr": n, "Quelle": str(f), "Datum": "", "Datumsquelle": "", "Lat": "", "Lon": "",
                          "Land": "", "Ort": "", "Kategorie": "", "Sicherheit": "", "Zweite_Wahl": "",
+                         "Weitere_Themen": "",
                          "Panorama": "", "Ziel_Datum": "", "Ziel_Ort": "", "Ziel_Thema": "",
                          "Doppelbild": "", "Doppelbild_von": "", "Aehnlichkeit": "", "Ziel_Doppel": ""}
                 datum = gps = None
@@ -730,6 +736,17 @@ class Sortierlauf:
                     zeile["Ziel_Thema"] = uebertragen(f, ziel / "nach_Thema" / sicherer_name(kat) / f.name, False)
                     zaehle(f"Thema: {kat}")
                     meldung.append(f"{kat} {p1:.0%}")
+                    # Mehrfachzuordnung: weitere Themen ab der zweiten Schwelle (nur wenn das Hauptthema sicher ist)
+                    if e.get("mehrfach") and kat != "_unsicher":
+                        ms = float(e.get("mehrfach_schwelle", 0.25))
+                        weitere = [(k, p) for k, p in bewertung[1:] if p >= ms]
+                        if weitere:
+                            zeile["Weitere_Themen"] = ", ".join(f"{k} ({p:.2f})" for k, p in weitere)
+                            for k, p in weitere:
+                                z = uebertragen(f, ziel / "nach_Thema" / sicherer_name(k) / f.name, False)
+                                zeile["Ziel_Thema"] += " | " + z
+                                zaehle(f"Thema: {k} (zusätzlich)")
+                                meldung.append(f"+ {k} {p:.0%}")
                 if e["panorama"] and panorama and ist_bild:
                     zeile["Panorama"] = "ja"
                     z = uebertragen(f, ziel / "nach_Thema" / "Panorama" / f.name, False)

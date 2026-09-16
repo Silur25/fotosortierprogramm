@@ -24,7 +24,7 @@ import fotosortierer_kern as kern  # noqa: E402
 
 EINSTELLUNGSDATEI = PROGRAMMORDNER / "einstellungen.json"
 ICON = PROGRAMMORDNER / "fotos_sortieren.ico"
-VERSION = "2.23"
+VERSION = "2.24"
 
 # Schriftgrössen in Punkt – hier anpassen, falls gewünscht
 GROESSE = 13
@@ -318,6 +318,7 @@ LISTEN_SPALTEN = [
     ("Datum", "Aufnahmedatum", 19, 8), ("Datumsquelle", "Datum aus", 12, 5),
     ("Land", "Land", 14, 5), ("Ort", "Ort", 18, 6),
     ("Kategorie", "Thema", 22, 8), ("Sicherheit", "Sicherheit", 11, 4), ("Zweite_Wahl", "Zweite Wahl", 24, 8),
+    ("Weitere_Themen", "Weitere Themen", 26, 8),
     ("Panorama", "Panorama", 10, 4),
     ("Doppelbild", "Doppel", 8, 4), ("Doppelbild_von", "Doppel von", 40, 10), ("Aehnlichkeit", "Ähnl. %", 8, 4),
     ("Ziel_Datum", "Zielordner Datum", 40, 9), ("Ziel_Ort", "Zielordner Ort", 40, 8), ("Ziel_Thema", "Zielordner Thema", 40, 8),
@@ -565,14 +566,32 @@ class ThemenFenster(tk.Toplevel):
                     format="%.2f", command=app._themen_kurz_aktualisieren).pack(side="left", padx=6)
         ttk.Label(unten, text="(darunter → Ordner _unsicher)", style="Erlaeuterung.TLabel").pack(side="left")
 
+        # Mehrfachzuordnung (ein Bild in mehrere Themenordner)
+        mehr = ttk.Frame(inhalt)
+        mehr.grid(row=3, column=0, sticky="ew", pady=(14, 0))
+        ttk.Checkbutton(mehr, text="Mehrfachzuordnung: Bild zusätzlich in jedes weitere passende Thema kopieren",
+                        variable=app.v_mehrfach, command=lambda: (self._mehrfach_umschalten(),
+                                                                  app._themen_kurz_aktualisieren())).pack(side="left")
+        ttk.Label(mehr, text="      ab Sicherheit:", font=SCHRIFT_FETT).pack(side="left")
+        self.sp_mehrfach = ttk.Spinbox(mehr, from_=0.10, to=0.50, increment=0.05, textvariable=app.v_mehrfach_schwelle,
+                                       width=6, format="%.2f", command=app._themen_kurz_aktualisieren)
+        self.sp_mehrfach.pack(side="left", padx=6)
+        ttk.Label(mehr, text="(Beispiel: Hund vor der Baustelle → Tier und Hausumbau)",
+                  style="Erlaeuterung.TLabel").pack(side="left")
+        self._mehrfach_umschalten()
+
         # Erläuterungen mit Abstand
         erl = ttk.Frame(inhalt)
-        erl.grid(row=3, column=0, sticky="ew", pady=(20, 0))
+        erl.grid(row=4, column=0, sticky="ew", pady=(20, 0))
         for zeile in (
             "Richtwerte Mindest-Sicherheit:   ≥ 0.70 = ziemlich sicher (selten falsch)   ·   0.45–0.70 = wahrscheinlich "
             "richtig, Grenzfälle möglich (zweite Wahl im Protokoll beachten)   ·   < 0.45 = unsicher → Ordner _unsicher",
             "Die Werte sind Anteile über alle Themen (Summe 100 %): je mehr Themen erfasst sind, desto tiefer fallen die "
             "Werte im Schnitt aus. Bei über 12 Themen die Schwelle eher auf 0.35–0.40 senken.",
+            "Mehrfachzuordnung: Das Hauptthema (höchster Wert) gilt wie bisher; erreicht ein weiteres Thema die zweite "
+            "Schwelle, wird das Bild auch dorthin kopiert (Spalte «Weitere Themen» in der Zuordnungsliste). Richtwert "
+            "0.25–0.30; da die Werte zusammen 100 % ergeben, kann ein Bild praktisch höchstens 2–3 Themen erreichen. "
+            "Unsichere Bilder (unter der Mindest-Sicherheit) werden nie mehrfach zugeordnet.",
             "Mehrere Formulierungen pro Thema machen die Erkennung robuster. Das Modell erkennt Motive, keine Orte oder "
             "Personen – Ortsangaben in Beschreibungen bringen nichts.",
             "Englische Modelle (englisch, englisch_gross): deutsche Beschreibungen werden automatisch ins Englische "
@@ -585,6 +604,9 @@ class ThemenFenster(tk.Toplevel):
         self._meldungen = queue.Queue()
         self._uebersetzt = None
         self.anzeige_aktualisieren()
+
+    def _mehrfach_umschalten(self):
+        self.sp_mehrfach.configure(state="normal" if self.app.v_mehrfach.get() else "disabled")
 
     # ---- Anzeige der Themen: deutsch oder (bei englischem Modell) automatisch übersetzt
     def anzeige_aktualisieren(self):
@@ -901,6 +923,8 @@ class App(tk.Tk):
                                                "Beschreibungen sagen dem KI-Modell, was hineingehört.")
         self.v_modell = tk.StringVar(value=self.e["modell"])
         self.v_schwelle = tk.DoubleVar(value=float(self.e["schwelle"]))
+        self.v_mehrfach = tk.BooleanVar(value=bool(self.e.get("mehrfach", False)))
+        self.v_mehrfach_schwelle = tk.DoubleVar(value=float(self.e.get("mehrfach_schwelle", 0.25)))
         zeile = ttk.Frame(self.f_thema)
         zeile.grid(row=0, column=0, sticky="ew")
         self.b_themen = ttk.Button(zeile, text="Themen bearbeiten (Vollbild) ...", command=self._themen_fenster)
@@ -958,7 +982,7 @@ class App(tk.Tk):
         f_log.rowconfigure(0, weight=0)
         # Kurzinfos in den Balken pflegen
         for v in (self.v_quelle, self.v_ziel, self.v_datum, self.v_ort, self.v_thema, self.v_pano,
-                  self.v_doppel, self.v_modell, self.v_schwelle):
+                  self.v_doppel, self.v_modell, self.v_schwelle, self.v_mehrfach, self.v_mehrfach_schwelle):
             v.trace_add("write", self._kurzinfos)
         self._kurzinfos()
 
@@ -1024,8 +1048,10 @@ class App(tk.Tk):
 
     def _themen_kurz_aktualisieren(self):
         namen = list(self.kategorien.keys())
+        mehrfach = (f"   ·   Mehrfachzuordnung ab {float(self.v_mehrfach_schwelle.get()):.2f}"
+                    if self.v_mehrfach.get() else "   ·   ein Thema pro Bild")
         text = (f"{len(namen)} Themen   ·   Modell {self.v_modell.get()}   ·   Mindest-Sicherheit "
-                f"{float(self.v_schwelle.get()):.2f}\n" + ", ".join(namen[:10]) + (" …" if len(namen) > 10 else ""))
+                f"{float(self.v_schwelle.get()):.2f}{mehrfach}\n" + ", ".join(namen[:10]) + (" …" if len(namen) > 10 else ""))
         if not self.v_thema.get():
             text = "Sortierung nach Thema ist in Abschnitt 2 nicht angehakt.   " + text
         self.l_themen_kurz.configure(text=text)
@@ -1045,6 +1071,7 @@ class App(tk.Tk):
                       panorama=self.v_pano.get(), datum_struktur=self.v_struktur.get(),
                       verschieben=self.v_move.get(), testlaufe=self.v_test.get(),
                       modell=self.v_modell.get(), schwelle=float(self.v_schwelle.get()),
+                      mehrfach=self.v_mehrfach.get(), mehrfach_schwelle=float(self.v_mehrfach_schwelle.get()),
                       kategorien=self.kategorien, ausschluss=self.v_ausschluss.get().strip(),
                       doppel_erkennen=self.v_doppel.get(), doppel_aehnlichkeit=int(self.v_doppel_proz.get()),
                       doppel_ordner=self.v_doppel_ordner.get().strip())
