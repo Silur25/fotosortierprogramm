@@ -1,0 +1,11 @@
+FOTOSORTIERPROGRAMM - INSTALLATIONSPAKET
+========================================
+
+1) Dieses ZIP entpacken.
+2) Doppelklick auf  "Programm installieren.bat"  und den Fragen folgen
+   (Enter = Vorgabe uebernehmen).
+   Windows-Hinweis "Der Computer wurde durch Windows geschuetzt":
+   "Weitere Informationen" -> "Trotzdem ausfuehren".
+3) Danach Desktop-Symbol "Fotos sortieren" starten.
+
+Details: ANLEITUNG.txt

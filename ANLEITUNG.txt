@@ -1,0 +1,203 @@
+FOTOSORTIERPROGRAMM  –  Version 2.21
+===================================
+
+Die Versionsnummer steht im Dateinamen (Fotosortierprogramm_v2.21.pyw) und oben im
+Programmfenster.
+
+INSTALLATION AUF EINEM ANDEREN RECHNER: siehe Abschnitt INSTALLATION unten – das ganze
+ZIP-Paket mitnehmen und dort "Programm installieren.bat" ausführen. Die Datei
+einstellungen.json (Themen, Ordner) kann zusätzlich kopiert werden, um die Themen zu übernehmen.
+
+PROGRAMMORDNER UMBENENNEN ODER VERSCHIEBEN:
+  Programm schliessen, Ordner im Explorer umbenennen/verschieben, danach im Ordner
+  verknuepfung_anlegen.py doppelklicken – die Desktop-Verknüpfung wird neu geschrieben.
+  Alles andere (Einstellungen, Themen, Übersetzungen, Ortscache) zieht automatisch mit.
+
+UPDATES:
+  Das Programm prüft beim Start (höchstens einmal täglich) über das Internet, ob eine
+  neue Version vorliegt, und bietet sie an: Dialog mit Versionsnummer und Änderungen,
+  "Ja" lädt die Dateien, prüft sie (SHA-256) und startet das Programm neu. Einstellungen
+  und Themen bleiben erhalten. Manuell: Knopf "Nach Updates suchen" im Kopfbereich.
+  Dabei werden keine Daten gesendet – das Programm liest nur eine öffentliche Datei.
+  Ohne Internet läuft das Programm unverändert weiter.
+  Von Hand geht es weiterhin: neue Fotosortierprogramm_vX.Y.pyw in den Programmordner
+  kopieren; die Startdatei nimmt automatisch die höchste Versionsnummer.
+
+Sortiert Fotos aus einem Ordner (inkl. aller Unterordner) in einen Zielordner:
+
+  nach_Datum\2024\2024-07\...            Aufnahmedatum aus den EXIF-Daten
+  nach_Ort\Schweiz\Rieden\...            GPS-Daten + Ortsname von OpenStreetMap
+  nach_Thema\Hausumbau\...               Bildinhalt, lokales KI-Modell, Kategorien frei definierbar
+  nach_Thema\Panorama\...                Seitenverhältnis >= 2:1
+  Aussortierte_Doppelbilder\...          doppelte / sehr ähnliche Bilder (Ordner frei wählbar)
+
+Die Originale bleiben unverändert (Kopie). Zu jedem Lauf entsteht ein Protokoll
+"sortierprotokoll_<Datum>.csv" (Excel, Semikolon) mit allen Zuordnungen.
+
+
+INSTALLATION (einmalig, auch auf einem anderen Rechner)
+-------------------------------------------------------
+1) ZIP-Paket entpacken (z. B. auf den Desktop oder in Downloads).
+2) Doppelklick auf  "Programm installieren.bat".
+   Erscheint der blaue Windows-Hinweis "Der Computer wurde durch Windows geschützt":
+   auf "Weitere Informationen" und dann "Trotzdem ausführen" klicken.
+   Die Installation fragt nacheinander (Enter = Vorgabe übernehmen):
+     - Installationsordner      Vorgabe: C:\Users\<Name>\Documents\Programm_FotoSortieren
+     - Ordner sortierte Fotos   Vorgabe: C:\Users\<Name>\Fotos_sortiert
+       (Doppelbilder-Ordner wird darin angelegt: ...\Fotos_sortiert\Aussortierte_Doppelbilder)
+     - KI-Module installieren?  J = ja (ca. 400 MB), N = später
+   Sie erledigt automatisch: Python prüfen/installieren, Programm kopieren, Windows-
+   Dateisperre aufheben, Module installieren, Desktop-Symbol "Fotos sortieren" anlegen.
+3) Desktop-Symbol doppelklicken. Beim ersten Start ist Abschnitt "1. Ordner" geöffnet:
+   Quellordner mit den Fotos wählen. Ziel- und Doppelbilder-Ordner sind bereits
+   eingetragen und können dort jederzeit geändert werden.
+
+Fehlt das Desktop-Symbol: im Installationsordner  verknuepfung_anlegen.py  doppelklicken.
+Erscheint beim Start kein Fenster: Fehlermeldung wird angezeigt und in fehler.log gespeichert.
+
+Hinweis Synchronisation: Liegt "Documents" im synchronisierten Bereich, werden
+Programmordner, Einstellungen und Protokolle mitsynchronisiert – das ist unkritisch.
+Das KI-Modell (ca. 1.1 GB) liegt NICHT im Programmordner, sondern im Benutzerprofil
+unter C:\Users\bernh\.cache\huggingface und wird nicht synchronisiert.
+Den ZIELordner für die sortierten Fotos trotzdem ausserhalb des Sync-Bereichs
+wählen (2- bis 4-fache Datenmenge), oder die Synchronisation während des Laufs
+pausieren.
+
+
+BEDIENUNG
+---------
+1. Ordner       Quelle (Deine Unterordner) und Ziel wählen. Optional: Doppelbilder-Ordner
+                (leer = Ziel\Aussortierte_Doppelbilder) und auszuschliessende Unterordner.
+2. Wie sortieren   Häkchen für Datum / Ort / Thema / Panorama. Datumsstruktur wählbar.
+                Doppelbilder: Häkchen + Ähnlichkeit in % (Standard 90). Das erste Vorkommen
+                eines Bildes wird normal einsortiert; jedes weitere identische oder sehr
+                ähnliche Bild geht NUR in den Doppelbilder-Ordner (mit Liste
+                Doppelbilder_Liste.txt, welches Bild Doppel von welchem Original ist).
+                100 % = nur identische Bilder; 90 % = auch verkleinerte, neu gespeicherte
+                oder leicht aufgehellte Kopien; unter 85 % steigt das Risiko, dass zwei
+                verschiedene, aber ähnliche Aufnahmen (Serienbilder) als Doppel gelten.
+                Im Protokoll/Excel: Spalten "Doppel", "Doppel von", "Ähnl. %".
+3. Themen       Nur für "Thema". Knopf "Themen bearbeiten (Vollbild)" öffnet ein eigenes
+                Fenster über den ganzen Bildschirm: Tabelle mit den Themen (links Thema,
+                rechts Beschreibungen), KI-Modell, Mindest-Sicherheit und Erläuterungen.
+                "Zurück (übernehmen)" schliesst es und speichert die Änderungen.
+                Ist ein englisches Modell gewählt, zeigt die Tabelle sofort die englische
+                Übersetzung der Beschreibungen (so, wie das Modell sie verwendet); gespeichert
+                und bearbeitet wird weiterhin der deutsche Text. Einzelne englische Wörter
+                (z. B. "scaffolding") am besten mit "en:" markieren, damit sie nicht durch
+                den Übersetzer laufen.
+                "Ergänzen / Neu": Im Auswahlfeld entweder ein bestehendes Thema wählen
+                (dessen Beschreibungen erscheinen und können ergänzt werden) oder
+                "<< Neues Thema anlegen >>" und einen Namen eingeben, z. B.
+
+                   Thema:           Personen_mit_Regenschirm
+                   Beschreibungen:  Person mit Regenschirm
+                                    Menschen im Regen mit aufgespanntem Schirm
+
+                Mehrere Formulierungen pro Thema machen die Erkennung robuster.
+                Doppelklick auf eine Zeile = bearbeiten. Alles wird gespeichert
+                (einstellungen.json) und ist beim nächsten Start wieder da.
+4. Ausführen    "Testlauf" angehakt lassen -> nur Protokoll, nichts wird kopiert.
+                Nach Start erscheint ein Fortschrittsfenster in der Bildschirmmitte.
+                Danach "Zuordnungsliste anzeigen": Tabelle mit jeder Datei, Datum, Ort,
+                Thema, Sicherheit, zweite Wahl und Zielpfaden; Spalten sortierbar.
+                "Excelliste erstellen" speichert dieselbe Tabelle als .xlsx (mit Filter,
+                fixierter Kopfzeile und Blatt "Zusammenfassung") und öffnet sie in Excel.
+                Speicherort: Zielordner (beim Testlauf: Programmordner).
+                Dann Häkchen "Testlauf" entfernen und echten Lauf starten.
+                Liegen im Ziel schon Ergebnisse eines früheren Laufs (nach_Datum, nach_Ort,
+                nach_Thema, Aussortierte_Doppelbilder), fragt das Programm:
+                  JA = diese Ordner löschen und alles neu erstellen (nach geänderten Themen
+                       sinnvoll; die Originale im Quellordner bleiben unberührt)
+                  NEIN = behalten und ergänzen (identische Dateien werden übersprungen)
+                  ABBRECHEN = zurück, nichts wird verändert
+                Fehler bei einzelnen Dateien (gesperrt, zu langer Pfad, defekt) brechen den
+                Lauf nicht ab: Die Datei wird übersprungen und im Protokoll mit "FEHLER"
+                markiert (Spalte "Datum aus"). Bricht der Lauf trotzdem ab, steht der Grund
+                im Fortschrittsfenster, im Protokolltext und in fehler.log im Programmordner.
+                Netzwerkunterbruch (Quelle/Ziel auf NAS, WinError 53/64/1231): Das Programm
+                wartet 8 s und versucht es bis zu 3-mal erneut; bleibt das Netz weg, stoppt
+                der Lauf mit Hinweis. Danach Verbindung prüfen, erneut starten und bei der
+                Frage nach früheren Ergebnissen NEIN wählen – der Lauf setzt fort, bereits
+                kopierte Dateien werden übersprungen. Tipp bei instabiler Verbindung: Quell-
+                ordner zuerst lokal auf den Laptop kopieren und von dort sortieren.
+
+Startseite: Die Abschnitte 1-3 sind zugeklappt (Klick auf den blauen Balken öffnet sie);
+im Balken steht die aktuelle Einstellung als Kurzinfo. Der Protokolltext ist über das
+Häkchen "Protokolltext anzeigen" einblendbar.
+
+Das Programm wird für weitere Foto-Ordner einfach erneut gestartet: neue Quelle
+wählen, gleiches Ziel oder neues Ziel, Start. Bereits vorhandene Dateien im Ziel
+(gleicher Name und gleiche Grösse) werden übersprungen, gleichnamige andere Dateien
+erhalten den Zusatz _1, _2 usw.
+
+
+KI-MODELL FÜR DIE THEMENSORTIERUNG
+----------------------------------
+mehrsprachig     Standard. Beschreibungen auf Deutsch möglich. Download ca. 1.1 GB
+                 beim ersten Lauf (wird lokal gespeichert, danach offline).
+englisch         Kleiner (600 MB), schneller.
+englisch_gross   Genauer, 1.7 GB, ca. 4x langsamer.
+Bei den englischen Modellen werden die deutschen Themenbeschreibungen automatisch
+übersetzt (lokales Übersetzungsmodell Helsinki-NLP opus-mt-de-en, einmalig ca. 300 MB
+Download; Übersetzungen werden in uebersetzungen.json gemerkt). Die Themen bleiben
+auf Deutsch gespeichert. Bereits englische Beschreibungen (erkennbar an Wörtern wie
+"a", "the", "with") bleiben unverändert; mit "en:" am Anfang kann man eine Zeile
+ausdrücklich als Englisch kennzeichnen. Im Protokolltext steht, welche englischen
+Beschreibungen tatsächlich verwendet wurden.
+
+Die Fotos verlassen den Laptop nicht; das Modell läuft lokal (ohne Grafikkarte ca.
+0.2 bis 0.5 s pro Bild, mit NVIDIA-Karte und CUDA-torch deutlich schneller).
+
+Mindest-Sicherheit (Standard 0.45): Liegt die beste Kategorie darunter, landet das
+Bild in nach_Thema\_unsicher. Im Protokoll steht zusätzlich die zweite Wahl.
+Richtwerte: >= 0.70 ziemlich sicher; 0.45-0.70 wahrscheinlich richtig, Grenzfälle
+möglich; < 0.45 unsicher. Die Werte sind Anteile über alle Themen (Summe 100 %) –
+bei vielen Themen (> 12) fallen sie tiefer aus, dann Schwelle auf 0.35-0.40 senken.
+Tipp: Erst Testlauf mit den Standardkategorien, Protokoll anschauen, dann
+Beschreibungen verfeinern (z. B. "Baugerüst am Haus in Rieden" bringt nichts –
+das Modell kennt Orte nicht; "Baugerüst am Wohnhaus" ist besser).
+
+
+GRENZEN UND UNKLARHEITEN (bitte beachten)
+-----------------------------------------
+- Das KI-Modell erkennt Motive (Baustelle, Gerüst, Pferd, Schirm), nicht Personen
+  oder Orte. "Hausumbau" trifft daher auch berufliche Baustellenfotos. Die Trennung
+  ergibt sich über Ort und Datum (Protokoll filtern: Kategorie Hausumbau + Ort Rieden).
+- Erwartete Trefferquote bei groben Kategorien: 85-95 %. Sehr spezifische Kategorien
+  ("Personen mit Regenschirm") funktionieren, sind aber unsicherer, weil das Merkmal
+  klein im Bild ist. Bei solchen Kategorien die Mindest-Sicherheit eher tiefer setzen
+  (0.35) und _unsicher manuell durchsehen.
+- Ortsabfrage: OpenStreetMap erlaubt 1 Abfrage/Sekunde. Koordinaten werden auf ca.
+  1 km gerundet und zwischengespeichert (geocache.json), darum sind es bei 1000 Fotos
+  meist nur wenige Dutzend Abfragen. Ohne Internet: Ordner nach_Ort\Unbekannt\<Koord.>;
+  ein späterer Lauf holt die Namen nach.
+- Ortsname = Stadt > Ortschaft > Dorf > Gemeinde > Bezirk > Kanton. In der freien
+  Natur ist es die nächstgelegene Gemeinde.
+- Bilder ohne EXIF-Datum (WhatsApp, Scans) erhalten das Dateidatum und landen im
+  Unterordner _ohne_EXIF-Datum – das Dateidatum ist nach früherem Kopieren oft falsch.
+- EXIF-Zeit ist Kamerazeit ohne Zeitzone; um Mitternacht in fernen Zeitzonen kann
+  der Tag/Monat um Stunden abweichen.
+- Videos (.mp4, .mov) werden nur nach Dateidatum sortiert.
+- Synchronisierte Laptops: Ziel ausserhalb des Sync-Bereichs wählen oder Sync
+  während des Laufs pausieren (2- bis 4-fache Datenmenge durch die Kopien).
+- "Verschieben" verändert die Quelle und ist nicht automatisch rückgängig zu machen.
+- Doppelbild-Erkennung vergleicht Bildstruktur und Helligkeitsverteilung (kein KI-Modell).
+  Serienaufnahmen vom gleichen Standpunkt können über 90 % erreichen – im Testlauf
+  die Spalte "Doppel von" prüfen und bei Bedarf die Schwelle auf 95-100 % setzen.
+  Gedrehte oder gespiegelte Kopien werden NICHT als Doppel erkannt.
+- Nicht geprüft: Das trainierte KI-Modell konnte in der Entwicklungsumgebung nicht
+  heruntergeladen werden. Der komplette Programmablauf ist getestet, die
+  Erkennungsqualität nicht – deshalb immer zuerst der Testlauf.
+
+
+DATEIEN IN DIESEM ORDNER
+------------------------
+Fotos_sortieren_start.pyw      Feste Startdatei (Ziel der Desktop-Verknüpfung) – nie ersetzen
+Fotosortierprogramm_v2.21.pyw   Programm mit Oberfläche (wird von der Startdatei gestartet)
+fotosortierer_kern.py     Sortierlogik
+Programm installieren.bat Installation (Python, Module, Ordner, Desktop-Verknüpfung)
+verknuepfung_anlegen.py   Legt die Desktop-Verknüpfung separat an (Doppelklick), falls sie fehlt
+fotos_sortieren.ico       Programmsymbol
+einstellungen.json        Deine Einstellungen und Kategorien (entsteht beim ersten Start)
+geocache.json             Zwischenspeicher der Ortsabfragen (bei Testläufen)
